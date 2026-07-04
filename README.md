@@ -1,5 +1,7 @@
 # lz-compressor
 
+[![CI](https://github.com/pavel-genai/lz-compressor/actions/workflows/ci.yml/badge.svg)](https://github.com/pavel-genai/lz-compressor/actions/workflows/ci.yml)
+
 A C17 compression library implementing LZ77, Huffman coding, and DEFLATE (combining both).
 
 ## Building
