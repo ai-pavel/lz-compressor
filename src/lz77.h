@@ -1,35 +1,57 @@
-#pragma once
+#ifndef LZ77_H
+#define LZ77_H
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
 
-namespace lz {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct LZ77Token {
-    uint16_t offset;   // distance back in the window
-    uint16_t length;   // match length
-    uint8_t next_char; // literal following the match
-};
+#define LZ77_DEFAULT_WINDOW_SIZE    4096
+#define LZ77_DEFAULT_LOOKAHEAD_SIZE 18
 
-class LZ77 {
-public:
-    explicit LZ77(uint16_t window_size = 4096, uint16_t lookahead_size = 18);
+typedef struct {
+    uint16_t offset;
+    uint16_t length;
+    uint8_t  next_char;
+} LZ77Token;
 
-    std::vector<LZ77Token> encode(const std::vector<uint8_t>& data) const;
-    std::vector<uint8_t> decode(const std::vector<LZ77Token>& tokens) const;
+typedef struct {
+    uint16_t window_size;
+    uint16_t lookahead_size;
+} LZ77Config;
 
-    // Serialize tokens to bytes and back
-    static std::vector<uint8_t> serialize(const std::vector<LZ77Token>& tokens);
-    static std::vector<LZ77Token> deserialize(const std::vector<uint8_t>& data);
+/* Create a default config. */
+LZ77Config lz77_default_config(void);
 
-    // Convenience: compress/decompress raw byte buffers
-    std::vector<uint8_t> compress(const std::vector<uint8_t>& data) const;
-    std::vector<uint8_t> decompress(const std::vector<uint8_t>& data) const;
+/* Encode raw data into tokens. Caller must free *out_tokens. Returns token count, or -1 on error. */
+int lz77_encode(const LZ77Config *cfg, const uint8_t *data, size_t data_len,
+                LZ77Token **out_tokens, size_t *out_count);
 
-private:
-    uint16_t window_size_;
-    uint16_t lookahead_size_;
-};
+/* Decode tokens back to raw data. Caller must free *out_data. Returns 0 on success, -1 on error. */
+int lz77_decode(const LZ77Config *cfg, const LZ77Token *tokens, size_t count,
+                uint8_t **out_data, size_t *out_len);
 
-} // namespace lz
+/* Serialize tokens to bytes. Caller must free *out. Returns 0 on success. */
+int lz77_serialize(const LZ77Token *tokens, size_t count,
+                   uint8_t **out, size_t *out_len);
+
+/* Deserialize bytes to tokens. Caller must free *out_tokens. Returns 0 on success. */
+int lz77_deserialize(const uint8_t *data, size_t data_len,
+                     LZ77Token **out_tokens, size_t *out_count);
+
+/* Compress raw data. Caller must free *out. Returns 0 on success. */
+int lz77_compress(const uint8_t *data, size_t data_len,
+                  uint8_t **out, size_t *out_len);
+
+/* Decompress data. Caller must free *out. Returns 0 on success. */
+int lz77_decompress(const uint8_t *data, size_t data_len,
+                    uint8_t **out, size_t *out_len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LZ77_H */

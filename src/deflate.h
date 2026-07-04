@@ -1,15 +1,25 @@
-#pragma once
+#ifndef DEFLATE_H
+#define DEFLATE_H
 
-#include <cstdint>
-#include <vector>
+#include <stdint.h>
+#include <stddef.h>
 
-namespace lz {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// DEFLATE-style compression: LZ77 followed by Huffman coding.
-class Deflate {
-public:
-    std::vector<uint8_t> compress(const std::vector<uint8_t>& data) const;
-    std::vector<uint8_t> decompress(const std::vector<uint8_t>& data) const;
-};
+/* DEFLATE-style compression: LZ77 followed by Huffman coding. */
 
-} // namespace lz
+/* Compress data. Caller must free *out. Returns 0 on success. */
+int deflate_compress(const uint8_t *data, size_t data_len,
+                     uint8_t **out, size_t *out_len);
+
+/* Decompress data. Caller must free *out. Returns 0 on success. */
+int deflate_decompress(const uint8_t *data, size_t data_len,
+                       uint8_t **out, size_t *out_len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* DEFLATE_H */

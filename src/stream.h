@@ -1,25 +1,34 @@
-#pragma once
+#ifndef STREAM_H
+#define STREAM_H
 
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <vector>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
 
-namespace lz {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-enum class Algorithm : uint8_t {
-    LZ77 = 1,
-    Huffman = 2,
-    Deflate = 3,
-};
+typedef enum {
+    ALGO_LZ77    = 1,
+    ALGO_HUFFMAN = 2,
+    ALGO_DEFLATE = 3
+} Algorithm;
 
-// Streaming compress/decompress API.
-// Reads entire input, compresses/decompresses, writes to output.
-// Returns the number of bytes written.
-size_t stream_compress(std::istream& in, std::ostream& out, Algorithm algo);
-size_t stream_decompress(std::istream& in, std::ostream& out);
+/* Streaming compress: reads all of fin, compresses, writes to fout.
+   Returns number of bytes written to fout, or -1 on error. */
+long stream_compress(FILE *fin, FILE *fout, Algorithm algo);
 
-// Utility to read all bytes from a stream.
-std::vector<uint8_t> read_all(std::istream& in);
+/* Streaming decompress: reads all of fin, decompresses, writes to fout.
+   Algorithm is auto-detected from file header.
+   Returns number of bytes written to fout, or -1 on error. */
+long stream_decompress(FILE *fin, FILE *fout);
 
-} // namespace lz
+/* Read all bytes from a FILE*. Caller must free *out. Returns 0 on success. */
+int read_all(FILE *f, uint8_t **out, size_t *out_len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* STREAM_H */

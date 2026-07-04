@@ -1,6 +1,6 @@
 # lz-compressor
 
-A C++17 compression library implementing LZ77, Huffman coding, and DEFLATE (combining both).
+A C17 compression library implementing LZ77, Huffman coding, and DEFLATE (combining both).
 
 ## Building
 
@@ -29,20 +29,28 @@ make
 
 ### Library API
 
-```cpp
+```c
 #include "stream.h"
-#include <fstream>
 
-// Streaming API
-std::ifstream fin("input.txt", std::ios::binary);
-std::ofstream fout("output.lzc", std::ios::binary);
-lz::stream_compress(fin, fout, lz::Algorithm::Deflate);
+/* Streaming API using FILE* */
+FILE *fin = fopen("input.txt", "rb");
+FILE *fout = fopen("output.lzc", "wb");
+stream_compress(fin, fout, ALGO_DEFLATE);
+fclose(fin);
+fclose(fout);
 
-// Direct buffer API
+/* Direct buffer API */
 #include "deflate.h"
-lz::Deflate defl;
-auto compressed = defl.compress(data);
-auto original = defl.decompress(compressed);
+uint8_t *compressed = NULL;
+size_t comp_len = 0;
+deflate_compress(data, data_len, &compressed, &comp_len);
+
+uint8_t *original = NULL;
+size_t orig_len = 0;
+deflate_decompress(compressed, comp_len, &original, &orig_len);
+
+free(compressed);
+free(original);
 ```
 
 ## Algorithms
@@ -62,14 +70,14 @@ ctest --output-on-failure
 
 ```
 src/
-  lz77.cpp/.h       - LZ77 encoder/decoder
-  huffman.cpp/.h     - Huffman encoder/decoder
-  deflate.cpp/.h     - DEFLATE (LZ77 + Huffman)
-  stream.cpp/.h      - Streaming API for istream/ostream
-  main.cpp           - CLI tool
+  lz77.c/.h       - LZ77 encoder/decoder
+  huffman.c/.h     - Huffman encoder/decoder
+  deflate.c/.h     - DEFLATE (LZ77 + Huffman)
+  stream.c/.h      - Streaming API for FILE*
+  main.c           - CLI tool
 test/
-  test_lz77.cpp      - LZ77 unit tests
-  test_huffman.cpp   - Huffman unit tests
-  test_deflate.cpp   - DEFLATE unit tests
-  test_stream.cpp    - Streaming API tests
+  test_lz77.c      - LZ77 unit tests
+  test_huffman.c   - Huffman unit tests
+  test_deflate.c   - DEFLATE unit tests
+  test_stream.c    - Streaming API tests
 ```
